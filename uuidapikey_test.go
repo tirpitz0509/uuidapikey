@@ -47,23 +47,34 @@ var tests = []struct {
 
 func TestIsUUID(t *testing.T) {
 	for _, test := range tests {
-		if !reflect.DeepEqual(true, IsUUID(test.uuid)) {
-			t.Errorf("Got %v, expected %v", IsUUID(test.apiKey), true)
+		uuidValid, err := IsUUID(test.uuid)
+		if err != nil {
+			t.Errorf("Error occurred: %v", err)
+		}
+		if !reflect.DeepEqual(true, uuidValid) {
+			t.Errorf("Got %v, expected %v", uuidValid, true)
 		}
 	}
 }
 
 func TestIsAPIKey(t *testing.T) {
 	for _, test := range tests {
-		if !reflect.DeepEqual(true, IsAPIKey(test.apiKey)) {
-			t.Errorf("Got %v, expected %v", IsAPIKey(test.apiKey), true)
+		apiKeyValid, err := IsAPIKey(test.apiKey)
+		if err != nil {
+			t.Errorf("Error occurred: %v", err)
+		}
+		if !reflect.DeepEqual(true, apiKeyValid) {
+			t.Errorf("Got %v, expected %v", apiKeyValid, true)
 		}
 	}
 }
 
 func TestToUUID(t *testing.T) {
 	for _, test := range tests {
-		createdUUID := ToUUID(test.apiKey)
+		createdUUID, err := ToUUID(test.apiKey)
+		if err != nil {
+			t.Errorf("Error occurred: %v", err)
+		}
 		if !reflect.DeepEqual(test.uuid, createdUUID) {
 			t.Errorf("Got %v, expected %v", createdUUID, test.uuid)
 		}
@@ -72,7 +83,10 @@ func TestToUUID(t *testing.T) {
 
 func TestToAPIKey(t *testing.T) {
 	for _, test := range tests {
-		createdAPIKey := ToAPIKey(test.uuid)
+		createdAPIKey, err := ToAPIKey(test.uuid)
+		if err != nil {
+			t.Errorf("Error occurred: %v", err)
+		}
 		if !reflect.DeepEqual(test.apiKey, createdAPIKey) {
 			t.Errorf("Got %v, expected %v", createdAPIKey, test.apiKey)
 		}
@@ -81,8 +95,12 @@ func TestToAPIKey(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 	for _, test := range tests {
-		if !reflect.DeepEqual(true, Check(test.uuid, test.apiKey)) {
-			t.Errorf("Got %v, expected %v", Check(test.uuid, test.apiKey), true)
+		checkValid, err := Check(test.uuid, test.apiKey)
+		if err != nil {
+			t.Errorf("Error occurred: %v", err)
+		}
+		if !reflect.DeepEqual(true, checkValid) {
+			t.Errorf("Got %v, expected %v", checkValid, true)
 		}
 	}
 }

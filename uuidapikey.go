@@ -18,6 +18,7 @@ package uuidapikey
 // Dependencies
 import (
 	"encoding/json"
+	"errors"
 	guid "github.com/google/uuid"
 	"regexp"
 	"strconv"
@@ -35,36 +36,41 @@ func checkDashes(positions []int, uuid string) bool {
 }
 
 // IsUUID will verify given UUID
-func IsUUID(uuid string) bool {
+func IsUUID(uuid string) (bool, error) {
 	if uuid == "" {
-		panic("The required parameter UUID is undefined")
+		return false, errors.New("The required parameter UUID is undefined")
 	}
 	//_, error := goid.GetUUIDFromString(uuid)
 	err := guid.Validate(uuid)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 // IsAPIKey will verify given API Key
-func IsAPIKey(apiKey string) bool {
+func IsAPIKey(apiKey string) (bool, error) {
 	if apiKey == "" {
-		panic("The required parameter API Key is undefined")
+		return false, errors.New("The required parameter API Key is undefined")
 	}
 	apiKey = strings.ToUpper(apiKey)
 	var re = regexp.MustCompile("-")
 	apiKey = re.ReplaceAllString(apiKey, "")
 	re = regexp.MustCompile("[0-9A-Z]{28}")
-	return len(apiKey) == 28 && re.MatchString(apiKey)
+	return len(apiKey) == 28 && re.MatchString(apiKey), nil
 }
 
 // ToAPIKey will convert given UUID to API Key
-func ToAPIKey(uuid string) string {
+func ToAPIKey(uuid string) (string, error) {
 	if uuid == "" {
-		panic("The required parameter UUID is undefined")
+		return "", errors.New("The required parameter UUID is undefined")
 	}
-	if IsUUID(uuid) {
+	uuidValid, err := IsUUID(uuid)
+	if err != nil {
+		return "", err
+	}
+
+	if uuidValid {
 		var re = regexp.MustCompile("-")
 		uuid = re.ReplaceAllString(uuid, "")
 		s1 := uuid[0:8]
@@ -81,17 +87,21 @@ func ToAPIKey(uuid string) string {
 		e2 := Encode(n2)
 		e3 := Encode(n3)
 		e4 := Encode(n4)
-		return e1 + "-" + e2 + "-" + e3 + "-" + e4
+		return e1 + "-" + e2 + "-" + e3 + "-" + e4, nil
 	}
-	panic("Invalid UUID string")
+	return "", errors.New("Invalid UUID string")
 }
 
 // ToUUID will convert given API Key to UUID
-func ToUUID(apiKey string) string {
+func ToUUID(apiKey string) (string, error) {
 	if apiKey == "" {
-		panic("The required parameter API Key is undefined")
+		return "", errors.New("The required parameter API Key is undefined")
 	}
-	if IsAPIKey(apiKey) {
+	apiKeyValid, err := IsAPIKey(apiKey)
+	if err != nil {
+		return "", err
+	}
+	if apiKeyValid {
 		var re = regexp.MustCompile("-")
 		apiKey = re.ReplaceAllString(apiKey, "")
 		e1 := apiKey[0:7]
@@ -108,34 +118,50 @@ func ToUUID(apiKey string) string {
 		d2b := d2[4:8]
 		d3a := d3[0:4]
 		d3b := d3[4:8]
-		return d1 + "-" + d2a + "-" + d2b + "-" + d3a + "-" + d3b + d4
+		return d1 + "-" + d2a + "-" + d2b + "-" + d3a + "-" + d3b + d4, nil
 	}
-	panic("Invalid API Key string")
+	return "", errors.New("Invalid API Key string")
 }
 
 // Check will verify both UUID and API Key, with either given
-func Check(uuid, apiKey string) bool {
+func Check(uuid, apiKey string) (bool, error) {
 	if uuid == "" {
-		panic("The required parameter UUID is undefined")
+		return false, errors.New("The required parameter UUID is undefined")
 	}
 	if apiKey == "" {
-		panic("The required parameter API Key is undefined")
+		return false, errors.New("The required parameter API Key is undefined")
 	}
-	if IsUUID(uuid) && IsAPIKey(apiKey) {
-		uuidCheck := ToUUID(apiKey)
-		return uuidCheck == uuid
+
+	uuidValid, err := IsUUID(uuid)
+	if err != nil {
+		return false, err
 	}
-	return false
+	apiKeyValid, err := IsAPIKey(apiKey)
+	if err != nil {
+		return false, err
+	}
+
+	if uuidValid && apiKeyValid {
+		uuidCheck, err := ToUUID(apiKey)
+		if err != nil {
+			return false, err
+		}
+		return uuidCheck == uuid, nil
+	}
+	return false, errors.New("Invalid UUID or API Key string")
 }
 
 // Create will create new UUID and API Key
-func Create() string {
+func Create() (string, error) {
 	uuid := guid.New().String()
-	apiKey := ToAPIKey(uuid)
+	apiKey, err := ToAPIKey(uuid)
+	if err != nil {
+		return "", err
+	}
 	pair := map[string]string{"uuid": uuid, "apiKey": apiKey}
 	jsonPair, err := json.Marshal(pair)
 	if err != nil {
-		panic("Error creating a new pair of keys")
+		return "", errors.New("Error creating a new pair of keys")
 	}
-	return string(jsonPair)
+	return string(jsonPair), nil
 }
