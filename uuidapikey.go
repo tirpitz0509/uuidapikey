@@ -18,7 +18,7 @@ package uuidapikey
 // Dependencies
 import (
 	"encoding/json"
-	guuid "github.com/google/uuid"
+	guid "github.com/google/uuid"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,8 +40,8 @@ func IsUUID(uuid string) bool {
 		panic("The required parameter UUID is undefined")
 	}
 	//_, error := goid.GetUUIDFromString(uuid)
-	error := guuid.Validate(uuid)
-	if error != nil {
+	err := guid.Validate(uuid)
+	if err != nil {
 		return false
 	}
 	return true
@@ -130,7 +130,7 @@ func Check(uuid, apiKey string) bool {
 
 // Create will create new UUID and API Key
 func Create() string {
-	uuid := guuid.New().String()
+	uuid := guid.New().String()
 	apiKey := ToAPIKey(uuid)
 	pair := map[string]string{"uuid": uuid, "apiKey": apiKey}
 	jsonPair, err := json.Marshal(pair)
