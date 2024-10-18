@@ -5,7 +5,7 @@ A Base32-Crockford encoded API Key generator, validator and converter to turn UU
 ## Installation
 You can install this with go get.
 ```
-go get "github.com/siesgstarena/uuidapikey"
+go get "github.com/tirpitz0509/uuidapikey"
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/siesgstarena/uuidapikey"
+	"github.com/tirpitz0509/uuidapikey"
 )
 
 func main() {
