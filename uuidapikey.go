@@ -18,11 +18,10 @@ package uuidapikey
 // Dependencies
 import (
 	"encoding/json"
+	guuid "github.com/google/uuid"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/JakeHL/Goid"
 )
 
 // checkDashes to verify dashes in given UUID
@@ -40,7 +39,8 @@ func IsUUID(uuid string) bool {
 	if uuid == "" {
 		panic("The required parameter UUID is undefined")
 	}
-	_, error := goid.GetUUIDFromString(uuid)
+	//_, error := goid.GetUUIDFromString(uuid)
+	error := guuid.Validate(uuid)
 	if error != nil {
 		return false
 	}
@@ -56,7 +56,7 @@ func IsAPIKey(apiKey string) bool {
 	var re = regexp.MustCompile("-")
 	apiKey = re.ReplaceAllString(apiKey, "")
 	re = regexp.MustCompile("[0-9A-Z]{28}")
-	return (len(apiKey) == 28 && re.MatchString(apiKey))
+	return len(apiKey) == 28 && re.MatchString(apiKey)
 }
 
 // ToAPIKey will convert given UUID to API Key
@@ -81,7 +81,7 @@ func ToAPIKey(uuid string) string {
 		e2 := Encode(n2)
 		e3 := Encode(n3)
 		e4 := Encode(n4)
-		return (e1 + "-" + e2 + "-" + e3 + "-" + e4)
+		return e1 + "-" + e2 + "-" + e3 + "-" + e4
 	}
 	panic("Invalid UUID string")
 }
@@ -108,7 +108,7 @@ func ToUUID(apiKey string) string {
 		d2b := d2[4:8]
 		d3a := d3[0:4]
 		d3b := d3[4:8]
-		return (d1 + "-" + d2a + "-" + d2b + "-" + d3a + "-" + d3b + d4)
+		return d1 + "-" + d2a + "-" + d2b + "-" + d3a + "-" + d3b + d4
 	}
 	panic("Invalid API Key string")
 }
@@ -130,7 +130,7 @@ func Check(uuid, apiKey string) bool {
 
 // Create will create new UUID and API Key
 func Create() string {
-	uuid := goid.NewV4UUID().String()
+	uuid := guuid.New().String()
 	apiKey := ToAPIKey(uuid)
 	pair := map[string]string{"uuid": uuid, "apiKey": apiKey}
 	jsonPair, err := json.Marshal(pair)
